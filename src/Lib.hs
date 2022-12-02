@@ -9,6 +9,7 @@ import Data.List (sort)
 
 aoc :: IO ()
 aoc = do
+         day1 "aoc/1/input"
          day2 "aoc/2/input"
 
 older :: IO ()
@@ -102,13 +103,14 @@ funcLookup _ = error "Undefined lookup"
 
 day1 :: String -> IO ()
 day1 filePath = do
+                  print $ "Day 1:"
                   rawLines <- readLines filePath
                   let groupSums = map (foldr (+) 0) $ parseCalorieGroups rawLines
-                  print $ maximum groupSums
-                  print $ (foldr (+) 0 . take 3 . reverse . sort) groupSums
+                  print $ maximum groupSums -- 72070
+                  print $ (foldr (+) 0 . take 3 . reverse . sort) groupSums -- 211805
 
 parseCalorieGroups :: [String] -> [[Int]]
 parseCalorieGroups [] = []
-parseCalorieGroups xs = [(intMap . fst . extractGroup) xs] ++ (parseCalorieGroups . drop 1 . snd . extractGroup) xs
-                        where extractGroup xt = span (/= "") xt
-                              intMap xu = map (read::String->Int) xu
+parseCalorieGroups xs = [(intMap . fst) extractGroup] ++ (parseCalorieGroups . drop 1 . snd) extractGroup
+                        where extractGroup = span (/= "") xs
+                              intMap xt = map (read::String->Int) xt
