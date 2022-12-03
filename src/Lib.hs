@@ -5,21 +5,61 @@ module Lib
     ) where
 
 import Data.List (sort)
---import Debug.Trace (trace)
+import Data.List (intersect)
+import Data.List (nub)
+import Data.List (elemIndex)
+import Data.Maybe (fromJust)
+import Debug.Trace (trace)
 
 aoc :: IO ()
 aoc = do
-         day1 "aoc/1/input"
-         day2 "aoc/2/input"
+         day3 "aoc/3/input"
 
 older :: IO ()
 older = do
          day1 "aoc/1/input"
+         day2 "aoc/2/input"
 
 readLines :: FilePath -> IO [String]
 readLines filePath = do
                        rawContents <- readFile filePath
                        return $ lines rawContents
+
+intMap :: [String] -> [Int]
+intMap xs = map (read::String->Int) xs
+
+intSum :: [Int] -> Int
+intSum = foldr (+) 0
+
+day3 :: String -> IO ()
+day3 filePath = do
+                  print $ "Day 3:"
+                  rawLines <- readLines filePath
+                  let sacks = map (splitSack) rawLines
+                  let sharedItems = map (sharedSackItem) sacks
+                  print $ intSum $ map (alphaLookup) sharedItems -- 7889
+                  let groupedSacks = groupSacks $ map (nub . sort) rawLines
+                  let groupSharedItems = map (foldl1 (intersect)) groupedSacks
+                  print $ intSum  $ map (alphaLookup . head) groupSharedItems -- 2825
+
+splitSack :: String -> (String, String)
+splitSack xs = ( front, back )
+               where half = (length xs) `div` 2
+                     front = (sort . take half) xs
+                     back = (sort . drop half) xs
+
+sharedSackItem :: Eq a => ([a], [a]) -> a
+sharedSackItem (x, y) = head $ nub $ intersect x y
+
+alphaLookup :: Char -> Int
+alphaLookup x = (1 +) . fromJust $ elemIndex x $ ['a'..'z'] ++ ['A'..'Z']
+
+groupSacks :: [a] -> [[a]]
+groupSacks [] = []
+groupSacks xs = group ++ rest
+                where group = [take 3 xs]
+                      rest = (groupSacks . drop 3) xs
+
 
 day2 :: String -> IO ()
 day2 filePath = do
@@ -44,7 +84,6 @@ parseStrategyPairs (x:xs) = filter (/=' ') x : parseStrategyPairs xs
 
 calculateStrategyValue :: [Char] -> [Int]
 calculateStrategyValue xs = (intMap . map (roshValue)) xs
-                            where intMap xu = map (read::String->Int) xu
 
 calculateWin :: [Int] -> Int
 calculateWin xs = winCalc + last xs
@@ -113,4 +152,3 @@ parseCalorieGroups :: [String] -> [[Int]]
 parseCalorieGroups [] = []
 parseCalorieGroups xs = [(intMap . fst) extractGroup] ++ (parseCalorieGroups . drop 1 . snd) extractGroup
                         where extractGroup = span (/= "") xs
-                              intMap xt = map (read::String->Int) xt
