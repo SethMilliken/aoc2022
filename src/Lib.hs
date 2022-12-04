@@ -28,8 +28,6 @@ readLines filePath = do
 intMap :: [String] -> [Int]
 intMap xs = map (read::String->Int) xs
 
-intSum :: [Int] -> Int
-intSum = foldr (+) 0
 
 day3 :: String -> IO ()
 day3 filePath = do
@@ -37,10 +35,10 @@ day3 filePath = do
                   rawLines <- readLines filePath
                   let sacks = map (splitSack) rawLines
                   let sharedItems = map (sharedSackItem) sacks
-                  print $ intSum $ map (alphaLookup) sharedItems -- 7889
+                  print $ sum $ map (alphaLookup) sharedItems -- 7889
                   let groupedSacks = groupSacks $ map (nub . sort) rawLines
                   let groupSharedItems = map (foldl1 (intersect)) groupedSacks
-                  print $ intSum  $ map (alphaLookup . head) groupSharedItems -- 2825
+                  print $ sum $ map (alphaLookup . head) groupSharedItems -- 2825
 
 splitSack :: String -> (String, String)
 splitSack xs = ( front, back )
@@ -52,7 +50,7 @@ sharedSackItem :: Eq a => ([a], [a]) -> a
 sharedSackItem (x, y) = head $ nub $ intersect x y
 
 alphaLookup :: Char -> Int
-alphaLookup x = (1 +) . fromJust $ elemIndex x $ ['a'..'z'] ++ ['A'..'Z']
+alphaLookup x = succ $ fromJust $ elemIndex x $ ['a'..'z'] ++ ['A'..'Z']
 
 groupSacks :: [a] -> [[a]]
 groupSacks [] = []
