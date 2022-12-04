@@ -9,16 +9,17 @@ import Data.List (intersect)
 import Data.List (nub)
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
-import Debug.Trace (trace)
+--import Debug.Trace (trace)
 
 aoc :: IO ()
 aoc = do
-         day3 "aoc/3/input"
+         day4 "aoc/4/input"
 
 older :: IO ()
 older = do
          day1 "aoc/1/input"
          day2 "aoc/2/input"
+         day3 "aoc/3/input"
 
 readLines :: FilePath -> IO [String]
 readLines filePath = do
@@ -28,6 +29,43 @@ readLines filePath = do
 intMap :: [String] -> [Int]
 intMap xs = map (read::String->Int) xs
 
+day4 :: String -> IO ()
+day4 filePath = do
+                  print $ "Day 4:"
+                  rawLines <- readLines filePath
+                  let pairs = map (splitOn (/= ',')) rawLines
+                  let ranges = map (handleRanges) pairs
+                  let subsumedRangeCount = map (subsumedRanges) ranges
+                  let overlapRangeCount = map (overlappedRanges) ranges
+                  --print $ ranges
+                  --print $ zip ranges overlapRangeCount
+                  print $ sum $ subsumedRangeCount -- 509
+                  print $ sum $ overlapRangeCount -- 870
+
+subsumedRanges :: (Ord a1, Ord a2, Num a3) =>  ((a1, a2), (a1, a2)) -> a3
+subsumedRanges ((x, y),(s,t))
+         | x >= s && y <= t = 1
+         | x <= s && y >= t = 1
+         | otherwise = 0
+
+overlappedRanges :: (Ord a1, Num a2) => ((a1, a1), (a1, a1)) -> a2
+overlappedRanges ((x, y),(s,t))
+         | x >= s && x <= t = 1
+         | y >= s && y <= t = 1
+         | s >= x && s <= y = 1
+         | t >= x && t <= y = 1
+         | otherwise = 0
+
+handleRanges :: ([Char], [Char]) -> ((Int, Int), (Int, Int))
+handleRanges (x,y) = ((numberize . subdiv) x, (numberize . subdiv) y)
+                    where subdiv = splitOn (/= '-')
+                          numberize (f, s) = (read f :: Int, read s :: Int)
+
+splitOn :: (a -> Bool) -> [a] -> ([a], [a])
+splitOn p x = ( front , back)
+            where both = span (p) x
+                  front = fst both
+                  back = (drop 1 . snd) both
 
 day3 :: String -> IO ()
 day3 filePath = do
