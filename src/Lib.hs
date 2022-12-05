@@ -7,19 +7,22 @@ module Lib
 import Data.List (sort)
 import Data.List (intersect)
 import Data.List (nub)
+import Data.List (transpose)
 import Data.List (elemIndex)
+import Data.Char (isLetter)
 import Data.Maybe (fromJust)
 --import Debug.Trace (trace)
 
 aoc :: IO ()
 aoc = do
-         day4 "aoc/4/input"
+         day5 "aoc/5/input"
 
 older :: IO ()
 older = do
          day1 "aoc/1/input"
          day2 "aoc/2/input"
          day3 "aoc/3/input"
+         day4 "aoc/4/input"
 
 readLines :: FilePath -> IO [String]
 readLines filePath = do
@@ -28,6 +31,52 @@ readLines filePath = do
 
 intMap :: [String] -> [Int]
 intMap xs = map (read::String->Int) xs
+
+day5 :: String -> IO ()
+day5 filePath = do
+                  print $ "Day 5:"
+                  rawLines <- readLines filePath
+                  let stackLines = take 8 rawLines
+                  let parsedStack = map (parseStackLines) stackLines
+                  let initialStacks = map (filter (/= ' ')) $ head $ map (transpose) [parsedStack]
+                  --print $ zipped
+                  let moves = drop 10 rawLines
+                  let parsedMoves = fmap (parseMove) $ moves
+                  --print $ parsedMoves
+                  let cm9000AppliedMoves = crateMover9000 initialStacks parsedMoves
+                  print $ cm9000AppliedMoves
+                  print $ "part 1: " ++ map (head) cm9000AppliedMoves -- VCTFTJQCG
+                  let cm9001AppliedMoves = crateMover9001 initialStacks parsedMoves
+                  print $ cm9001AppliedMoves
+                  print $ "part 2: " ++ map (head) cm9001AppliedMoves -- GCFGLDNJZ
+
+parseStackLines :: [a] -> [a]
+parseStackLines xs = [ xs !! x | x <- take 9 [1,5..]]
+
+parseMove :: [Char] -> [Int]
+parseMove  xs = intMap . words $ filter (not . isLetter) xs
+
+applyMove :: ([a] -> [a]) -> [[a]] -> [Int] -> [[a]]
+applyMove op stack move = swapFor to newDest $ swapFor from newSource stack
+               where c = move !! 0
+                     from = pred $ move !! 1
+                     to = pred $ move !! 2
+                     source = stack !! from
+                     dest = stack !! to
+                     newSource = [ drop c source ]
+                     newDest = [(op $ take c source) ++ dest ]
+
+swapFor :: Int -> [a] -> [a] -> [a]
+swapFor index newElement stack = take index stack ++ newElement ++ drop (succ index) stack
+
+crateMover9000 :: [[a]] -> [[Int]] -> [[a]]
+crateMover9000 stack [] = stack
+crateMover9000 stack (move:moves) = crateMover9000 (applyMove reverse stack move) moves
+
+crateMover9001 :: [[a]] -> [[Int]] -> [[a]]
+crateMover9001 stack [] = stack
+crateMover9001 stack (move:moves) = crateMover9001 (applyMove id stack move) moves
+
 
 day4 :: String -> IO ()
 day4 filePath = do
