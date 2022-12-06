@@ -107,19 +107,19 @@ crateMover9001 :: [[a]] -> [[Int]] -> [[a]]
 crateMover9001 stack [] = stack
 crateMover9001 stack (move:moves) = crateMover9001 (applyMove id stack move) moves
 
-
-day4 :: String -> IO ()
+-- }}}
+day4 :: String -> IO () -- {{{
 day4 filePath = do
                   print $ "Day 4:"
                   rawLines <- readLines filePath
                   let pairs = map (splitOn (/= ',')) rawLines
                   let ranges = map (handleRanges) pairs
-                  let subsumedRangeCount = map (subsumedRanges) ranges
-                  let overlapRangeCount = map (overlappedRanges) ranges
+                  let subsumedRangeCount = sum $ map (subsumedRanges) ranges
+                  let overlapRangeCount = sum $ map (overlappedRanges) ranges
                   --print $ ranges
                   --print $ zip ranges overlapRangeCount
-                  print $ sum $ subsumedRangeCount -- 509
-                  print $ sum $ overlapRangeCount -- 870
+                  print subsumedRangeCount -- 509
+                  print overlapRangeCount -- 870
 
 subsumedRanges :: (Ord a1, Ord a2, Num a3) =>  ((a1, a2), (a1, a2)) -> a3
 subsumedRanges ((x, y),(s,t))
@@ -146,7 +146,8 @@ splitOn p x = ( front , back)
                   front = fst both
                   back = (drop 1 . snd) both
 
-day3 :: String -> IO ()
+-- }}}
+day3 :: String -> IO () -- {{{
 day3 filePath = do
                   print $ "Day 3:"
                   rawLines <- readLines filePath
@@ -175,8 +176,8 @@ groupSacks xs = group ++ rest
                 where group = [take 3 xs]
                       rest = (groupSacks . drop 3) xs
 
-
-day2 :: String -> IO ()
+-- }}}
+day2 :: String -> IO () -- {{{
 day2 filePath = do
                   print $ "Day 2:"
                   rawLines <- readLines filePath
@@ -253,9 +254,8 @@ funcLookup 2 = drawLookup
 funcLookup 3 = winLookup
 funcLookup _ = error "Undefined lookup"
 
-
-
-day1 :: String -> IO ()
+--- }}}
+day1 :: String -> IO () -- {{{
 day1 filePath = do
                   print $ "Day 1:"
                   rawLines <- readLines filePath
@@ -267,3 +267,4 @@ parseCalorieGroups :: [String] -> [[Int]]
 parseCalorieGroups [] = []
 parseCalorieGroups xs = [(intMap . fst) extractGroup] ++ (parseCalorieGroups . drop 1 . snd) extractGroup
                         where extractGroup = span (/= "") xs
+--- }}}
