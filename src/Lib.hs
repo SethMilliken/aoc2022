@@ -15,14 +15,17 @@ import Data.Maybe (fromJust)
 
 aoc :: IO ()
 aoc = do
-         day5 "aoc/5/input"
+         day6 "aoc/6/input"
 
-older :: IO ()
+
+older :: IO () -- {{{
 older = do
          day1 "aoc/1/input"
          day2 "aoc/2/input"
          day3 "aoc/3/input"
          day4 "aoc/4/input"
+         day5 "aoc/5/input"
+--}}}
 
 readLines :: FilePath -> IO [String]
 readLines filePath = do
@@ -32,7 +35,34 @@ readLines filePath = do
 intMap :: [String] -> [Int]
 intMap xs = map (read::String->Int) xs
 
-day5 :: String -> IO ()
+day6 :: String -> IO () -- {{{
+day6 filePath = do
+                  print $ "Day 6:"
+                  rawLines <- readLines filePath
+                  let elfSignal = head rawLines
+                  --print $ elfSignal
+                  print $ "size of signal: " ++ show (length elfSignal)
+                  let takeFours = takeGroups 4
+                  let fours = takeFours elfSignal 0
+                  let notSopFours = takeWhile (not . detectDistincts 4) fours
+                  --print $ notSopFours
+                  print $ 4 + length notSopFours -- 1802
+                  let takeFourteens = takeGroups 14
+                  let fourteens = takeFourteens elfSignal 0
+                  let notMessageFourteens = takeWhile (not . detectDistincts 14) fourteens
+                  --print $ notMessageFourteens
+                  print $ 14 + length notMessageFourteens -- 3551
+
+takeGroups :: (Num t, Eq a) => Int -> [a] -> t -> [[a]]
+takeGroups size str idx = ([ next ] ++ takeGroups size remain (idx + 1))
+                          where next = take size $ str
+                                remain = drop 1 str
+
+detectDistincts :: Eq a => Int -> [a] -> Bool
+detectDistincts cnt candidate = length (nub candidate) == cnt
+
+-- }}}
+day5 :: String -> IO () -- {{{
 day5 filePath = do
                   print $ "Day 5:"
                   rawLines <- readLines filePath
