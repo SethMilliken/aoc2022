@@ -15,8 +15,8 @@ import Data.Maybe (fromJust)
 
 aoc :: IO ()
 aoc = do
-         day6 "aoc/6/input"
-
+         --day8 "aoc/8/example"
+         day8 "aoc/8/input"
 
 older :: IO () -- {{{
 older = do
@@ -25,6 +25,7 @@ older = do
          day3 "aoc/3/input"
          day4 "aoc/4/input"
          day5 "aoc/5/input"
+         day6 "aoc/6/input"
 --}}}
 
 readLines :: FilePath -> IO [String]
@@ -35,6 +36,63 @@ readLines filePath = do
 intMap :: [String] -> [Int]
 intMap xs = map (read::String->Int) xs
 
+str2ints xs = intMap $ map (:[]) xs
+
+day8 :: String -> IO () -- {{{
+day8 filePath = do
+                  print $ "Day 8:"
+                  rawLines <- readLines filePath
+                  let horizontal = map (str2ints) rawLines
+                  let vertical = transpose horizontal
+                  let coords = [ (x, y) | x <- [0..((pred . length . head) horizontal)], y <- [0..((pred . length . head) vertical)] ]
+                  let visi = visiGroups vertical horizontal
+                  let results = fmap (visi) coords
+                  let visiMap = fmap (checkVisi) results
+                  let visibles = fmap (or) $ visiMap
+                  let scoreMap = fmap (scoreVisis) results
+                  --print $ coords
+                  --print $ horizontal
+                  --print $ vertical
+                  --print $ results
+                  --print $ length results
+                  --print $ visiMap
+                  --print $ visibles
+                  --print $ scoreMap
+                  --print $ length coords
+                  --let testCase = fmap (scoreVisis) [(5,[[3,5,3],[3],[3,3],[4,9]])]
+                  --print $ "testCase: " ++ show testCase
+                  print $ "length: " ++ show (length visibles)
+                  print $ "part 1: " ++ show (sum $ map fromEnum visibles) -- 1695
+                  print $ "part 2: " ++ show (last $ sort $ map (foldl1 (*)) scoreMap) -- 287040
+
+--checkVisi (v, [xs]) = map (\x -> (x)) $ filter (not . null) xs
+checkVisi (_, []) = []
+checkVisi (j, xs) = fmap (checkIt) xs
+                    where checkIt [] = True
+                          checkIt ls = all (< j) ls
+
+scoreVisis (_, []) = []
+scoreVisis (j, xs) = fmap (checkIt) xs
+                    where checkIt [] = 0
+                          checkIt ls = untilVisible j ls
+
+untilVisible idx [] = 0
+untilVisible idx (x:xs)  | x < idx  = 1 + untilVisible idx xs
+                         | x >= idx = 1
+
+--visiGroups vert hori (x,y) = ((x,y), v == u, [rbefore, rafter, cbefore, cafter])
+visiGroups vert hori (x,y) = (v, [reverse rbefore, rafter, reverse cbefore, cafter])
+                                  where row = vert !! y
+                                        col = hori !! x
+                                        v =  row !! x
+                                        u =  col !! y
+                                        rbefore = take x row
+                                        rafter = drop (x + 1) row
+                                        cbefore = take y col
+                                        cafter = drop (y + 1) col
+
+
+-- }}}
 day6 :: String -> IO () -- {{{
 day6 filePath = do
                   print $ "Day 6:"
