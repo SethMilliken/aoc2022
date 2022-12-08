@@ -12,6 +12,9 @@ import Data.List (elemIndex)
 import Data.Char (isLetter)
 import Data.Maybe (fromJust)
 --import Debug.Trace (trace)
+import Control.Applicative
+import Data.Traversable (sequenceA)
+import Data.List (tails)
 
 aoc :: IO ()
 aoc = do
@@ -26,6 +29,8 @@ older = do
          day4 "aoc/4/input"
          day5 "aoc/5/input"
          day6 "aoc/6/input"
+         --day7 "aoc/7/input"
+         --day7 "aoc/7/example"
 --}}}
 
 readLines :: FilePath -> IO [String]
@@ -93,6 +98,62 @@ visiGroups vert hori (x,y) = (v, [reverse rbefore, rafter, reverse cbefore, caft
 
 
 -- }}}
+day7 :: String -> IO () -- {{{
+day7 filePath = do
+                  print $ "Day 7:"
+                  rawLines <- readLines filePath
+                  let listing = map (words) rawLines
+                  let tokens = map (tokenizeListing) listing
+                  print $ tokens
+                  let extendedPaths = extendPaths tokens
+                  print $ extendedPaths
+                  let totalSizes = processGraph tokens
+                  print $ snd totalSizes
+                  print $ sum $ map (\(_,size) -> size) $ filter (\(_,size) -> size < 100000) $ fst totalSizes
+
+extendPaths [] = []
+extendPaths xs = foldl (applyDir) ["", [], []] xs
+
+applyDir stuff token = case token of
+                            ("cd":"..":[]) -> token
+                            ("cd":dir:[]) -> token
+                            x -> token
+
+processGraph tokens = (zipSizes, graph)
+                      where graph = walkTokens tokens
+                            dirSizes = fmap (\(idx,(dirs,_)) -> (idx, dirTotal dirs)) graph
+                            fileSizes = fmap (\(idx,(_,sizes)) -> (idx, reduceSizes sizes)) graph
+                            reduceSizes sizes = sum $ intMap sizes
+                            dirTotal dirs = sum $ concat $ fmap (calculate) dirs
+                            calculate dir = map (\(_,size) -> size) $ matching dir fileSizes
+                            zipSizes = map (\(idx, size) -> (idx, size + (snd $ head $ matching idx dirSizes))) fileSizes
+                            matching key = filter (\(idx, _) -> idx == key)
+
+tokenizeListing ("$":"cd":dir) = "cd":dir
+tokenizeListing ("$":"ls":[]) = []
+tokenizeListing ("dir":dir:[]) = "dir":dir:[]
+tokenizeListing (number:_:[]) = number:[]
+tokenizeListing (_:_) = error "unknown command"
+
+walkTokens [] = []
+walkTokens (token:tokens) = handleToken token
+                            where handleToken ("cd":"..":[]) = walkTokens remainder
+                                  handleToken ("cd":dir:[]) = [(dir,(getDirs, getFiles))] ++ walkTokens remainder
+                                  listing = filter (not . null) $ takeWhile (isContents) tokens
+                                  remainder = dropWhile (isContents) tokens
+                                  getDirs = concat $ map (tail) $ filter (\x -> head x == "dir") listing
+                                  getFiles = concat $ filter (\x -> length x == 1) listing
+
+handleContents token = case (token) of
+                            [] -> []
+                            (x:y:[]) -> y
+                            (n:[]) -> n
+
+isContents token = case (token) of
+                        ("cd":dir) -> False
+                        (_) -> True
+
+-- }}}
 day6 :: String -> IO () -- {{{
 day6 filePath = do
                   print $ "Day 6:"
@@ -103,13 +164,17 @@ day6 filePath = do
                   let takeFours = takeGroups 4
                   let fours = takeFours elfSignal 0
                   let notSopFours = takeWhile (not . detectDistincts 4) fours
-                  --print $ notSopFours
+                  --print $ not Sop Fours
+                  print $ windows 4 elfSignal
                   print $ 4 + length notSopFours -- 1802
                   let takeFourteens = takeGroups 14
                   let fourteens = takeFourteens elfSignal 0
                   let notMessageFourteens = takeWhile (not . detectDistincts 14) fourteens
                   --print $ notMessageFourteens
                   print $ 14 + length notMessageFourteens -- 3551
+
+windows :: Int -> [a] -> [[a]]
+windows m = getZipList . sequenceA . map ZipList . take m . tails
 
 takeGroups :: (Num t, Eq a) => Int -> [a] -> t -> [[a]]
 takeGroups size str idx = ([ next ] ++ takeGroups size remain (idx + 1))
