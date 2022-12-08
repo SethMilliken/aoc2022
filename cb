@@ -1,0 +1,3 @@
+#!/bin/zsh
+# --pedantic
+stack build --file-watch --fast --exec "stack exec hask-exe"
